@@ -1,5 +1,8 @@
 import React from "react";
 import './style.css';
+import Table from './Table';
+import Notification from './Notifications.jsx';
+
 
 import {
   Card,
@@ -11,10 +14,17 @@ import mapboxgl from 'mapbox-gl';
 
 
 class Index extends React.Component {
+  mapRef = React.createRef();
 
   state = {
     collapseFirst: false,
     collapseSecond: false,
+    markers: [],
+    mapBox: {},
+    open: false,
+    color: '',
+    text: '',
+    icon: '',
   }
 
   changeCollapse = collapse => {
@@ -49,17 +59,71 @@ class Index extends React.Component {
   componentDidMount() {
     mapboxgl.accessToken = 'pk.eyJ1IjoicGF3ZWxqYWRhY2giLCJhIjoiY2s4bGJwYWxyMDIxNzNmcW9iOHI2dzVrcCJ9.tCvKk6nxMW_noFhGWfQfVg';
     // eslint-disable-next-line
-      const map = new mapboxgl.Map({
-        container: 'mapBox',
+      const box = new mapboxgl.Map({
+        container: this.mapRef.current,
         style: 'mapbox://styles/paweljadach/ck8letfro0joi1iqw2n6nu1ss'
-      }); 
+      })
+
+      this.setState({
+        mapBox: box,
+      })
+
+      box.on('click', (e) => {
+        this.addMarker(e.lngLat);
+      });
+
+      box.on('load',  () => {
+        box.resize();
+    });
   };
 
+
+  deleteMarkerFromStare = (markerToDelete) => {
+    this.setState((prevState) => ({
+      markers: prevState.markers.filter(marker => marker !== markerToDelete),
+    }));
+    markerToDelete.remove();
+    this.addAlert('danger', 'Marker removed!', 'fas fa-trash');
+  };
+
+  addMarker = (marker) => {
+    const newMarker = new mapboxgl.Marker({
+      draggable: true
+      })
+      .setLngLat([marker.lng, marker.lat])
+      .addTo(this.state.mapBox);
+      this.setState((prevState) => ({
+        markers: prevState.markers.concat(newMarker)
+      }));
+      this.addAlert('success', 'Marker added!', 'now-ui-icons ui-2_like');
+      return null;  
+  }
+
+  closeAlert = () => {
+    this.setState((prevState) => ({
+      open: !prevState.open,
+    }))
+  }
+
+  addAlert = (color, text, icon) => {
+    this.setState((prevState) => ({
+      open: true,
+      color: color,
+      text: text,
+      icon: icon,
+    }))
+    setTimeout(() => {
+      this.setState((prevState) => ({
+        open: false,
+        color: '',
+        text: '',
+        icon: '',
+        }))
+      }, 1000)
+  }
   
-
+ 
   
-
-
   render(){
     
     return (
@@ -72,15 +136,17 @@ class Index extends React.Component {
                 backgroundColor: "#2c2c2c"
               }}
             ></div>
+            
             <div className="content mt-3 mx-auto " style={{'width': '50vw'}}>
+            <h1 className="lead">Paweł Jadach - zadanie rekrutacyjne</h1>
             <div id="acordeon">
                 <div aria-multiselectable={true} id="accordion" role="tablist">
-                  <Card className="no-transition text-white bg-dark">
+                  <Card className="no-transition bg-dark">
                     <CardHeader className="card-collapse" id="headingOne" role="tab">
                       <h5 className="mb-0 panel-title">
                         <a
                           aria-expanded={this.state.collapseFirst}
-                          className="collapsed btn btn-danger"
+                          className="collapsed btn btn-warning"
                           data-parent="#accordion"
                           href="#pablo"
                           id="collapseOne"
@@ -96,7 +162,7 @@ class Index extends React.Component {
                     </CardHeader>
                     <Collapse isOpen={this.state.collapseFirst}>
                       <CardBody className='cardMap'>
-                        <div id="mapBox" />
+                        <div id="mapBox" ref={this.mapRef} />
                       </CardBody>
                     </Collapse>
                     <CardHeader className="card-collapse" id="headingTwo" role="tab">
@@ -120,22 +186,14 @@ class Index extends React.Component {
                     </CardHeader>
                     <Collapse isOpen={this.state.collapseSecond}>
                       <CardBody>
-                        Anim pariatur cliche reprehenderit, enim eiusmod high life
-                        accusamus terry richardson ad squid. 3 wolf moon officia aute,
-                        non cupidatat skateboard dolor brunch. Food truck quinoa
-                        nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt
-                        aliqua put a bird on it squid single-origin coffee nulla
-                        assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft
-                        beer labore wes anderson cred nesciunt sapiente ea proident.
-                        Ad vegan excepteur butcher vice lomo. Leggings occaecat craft
-                        beer farm-to-table, raw denim aesthetic synth nesciunt you
-                        probably haven't heard of them accusamus labore sustainable
-                        VHS.
+                        <Table deleteFunc={this.deleteMarkerFromStare} markers={this.state.markers}/>
                       </CardBody>
                     </Collapse>
                   </Card>
                 </div>
-                {/* end acordeon */}
+                <div className='alertWrapper'>
+              <Notification closeAlert={this.closeAlert} open={this.state.open} color={this.state.color} text={this.state.text} icon={this.state.icon}/>
+            </div>
               </div>
             </div>
           </div>
