@@ -34,6 +34,7 @@ class Index extends React.Component {
           collapseFirst: true,
           collapseSecond: false,
         })
+        this.reloadMap(this.state.mapBox);
       } else {
         this.setState({
           collapseFirst: false,
@@ -53,7 +54,10 @@ class Index extends React.Component {
           collapseSecond: false,
         })
       }
+      
     }
+    
+ 
   };
 
   componentDidMount() {
@@ -71,11 +75,11 @@ class Index extends React.Component {
       box.on('click', (e) => {
         this.addMarker(e.lngLat);
       });
-
-      box.on('load',  () => {
-        box.resize();
-    });
   };
+
+  reloadMap = (box) => {
+    setTimeout(() => box.resize(), 1);
+  }
 
 
   deleteMarkerFromStare = (markerToDelete) => {
@@ -125,6 +129,7 @@ class Index extends React.Component {
  
   
   render(){
+   
     
     return (
       <>
